@@ -30,26 +30,28 @@ The platform ensures **structured workflows, secure access, and improved coordin
 ### 👑 Club Leaders
 
 * Create, update, and delete events
-* Manage registrations (approve/reject)
 * Upload post-event galleries
 * Broadcast announcements
 * Customize club profiles
 
 ### 🛡️ Admin
 
-* Full control over users, clubs, and events
-* Monitor platform activity and maintain system integrity
+* Create college level events
+* Broadcast announcements
+* Update college Logo 
 
 ---
 
 ## 📸 Screenshots
 
-> ⚠️ Add your actual screenshots here (very important for recruiters)
 ![Home](<Screenshot 2026-05-03 135747.png>)
-* Student Dashboard
-![DAshboard](<Screenshot 2026-05-03 140115.png>)
+
 * Leader Dashboard
+![DAshboard](<Screenshot 2026-05-03 140115.png>)
+
+* Student Dashboard
 ![Dashboard](<Screenshot 2026-05-03 140220.png>)
+
 * Admin Dashboard
 ![Dashboard](<Screenshot 2026-05-03 141432.png>)
 
@@ -64,9 +66,10 @@ git clone https://github.com/your-username/clubhub-college-management-system.git
 cd clubhub-college-management-system
 
 ### 2. Backend Setup
-
+```bash
 cd backend
 pip install -r ../requirements.txt
+```
 
 ### 3. Environment Configuration
 
@@ -81,16 +84,22 @@ SMTP_PASSWORD=your_app_password
 
 ### 4. Initialize Database
 
+```bash
 python reset_db.py
+```
 
 ### 5. Run Backend
 
+```bash
 uvicorn app.main:app --reload --port 8000
+```
 
 ### 6. Run Frontend
 
+```bash
 cd frontend
 python -m http.server 8080
+```
 
 ### 7. Access Application
 
