@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Hub - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-layout { display: flex; gap: 2rem; margin-top: 2rem; }
+        .sidebar { position: static; height: auto; width: 250px; background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s ease; overflow: hidden; white-space: nowrap; }
+        .sidebar.collapsed { width: 0; padding: 0; border: none; opacity: 0; margin-left: -2rem; }
+        .sidebar-item { padding: 0.75rem 1rem; color: var(--text-muted); cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem; transition: all 0.2s; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.05); }
+        .sidebar-item.active { background: var(--primary); color: #fff; }
+        .main-panel { margin-left: 0; flex: 1; background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s ease; min-width: 0; }
+        .panel-section { display: none; }
+        .panel-section.active { display: block; animation: fadeIn 0.3s; }
+        
+        .list-card { background: rgba(0,0,0,0.2); padding: 1.5rem; border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .tag { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500; }
+        .tag.participant { background: rgba(79, 70, 229, 0.2); color: #a5b4fc; }
+        .tag.volunteer { background: rgba(6, 182, 212, 0.2); color: #67e8f9; }
+        .tag.pending { background: rgba(234, 179, 8, 0.2); color: #fdf08a; }
+        .tag.approved { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+    </style>
+</head>
+<body>
+    <header style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="logo">ClubHub <span style="font-size: 0.8rem; color: var(--primary); margin-left:1rem;">STUDENT HUB</span></div>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 500;">Home</a>
+            <button onclick="logout()" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">Logout</button>
+        </div>
+    </header>
+
+    <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <button onclick="toggleSidebar()" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">☰</button>
+            <h1 id="welcome-text" style="margin: 0;">Your Dashboard</h1>
+        </div>
+        
+        <div class="dashboard-layout">
+            <div class="sidebar collapsed">
+                <div class="sidebar-item active" onclick="switchPanel('panel-events')">Explore Events</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-regs')">My Registrations</div>
+            </div>
+
+            <div class="main-panel">
+                <!-- Events -->
+                <div id="panel-events" class="panel-section active">
+                    <h3>Upcoming Events</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Discover and join activities around campus.</p>
+                    <div id="events-list">Loading events...</div>
+                </div>
+
+                <!-- My Registrations -->
+                <div id="panel-regs" class="panel-section">
+                    <h3>My Registrations</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Track your event participations and volunteer requests.</p>
+                    <div id="regs-list">Loading registrations...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function switchPanel(panelId) {
+            document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        async function fetchEvents() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/student/events?upcoming=true', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const events = await res.json();
+                const container = document.getElementById('events-list');
+                container.innerHTML = '';
+                
+                if(events.length === 0) container.innerHTML = '<p>No upcoming events.</p>';
+                
+                events.forEach(ev => {
+                    const card = document.createElement('div');
+                    card.className = 'list-card';
+                    let buttonsHtml = '';
+                    if (registeredEventIds.has(ev.id)) {
+                        buttonsHtml = `<span class="tag approved" style="padding: 0.5rem 1rem;">Already Registered</span>`;
+                    } else {
+                        buttonsHtml = `
+                            <button onclick="registerEvent(${ev.id}, 'participant')" class="btn" style="padding:0.4rem 0.8rem; font-size:0.85rem">Join As Participant</button>
+                            <button onclick="registerEvent(${ev.id}, 'volunteer')" class="btn btn-outline" style="padding:0.4rem 0.8rem; font-size:0.85rem">Volunteer</button>
+                        `;
+                    }
+                    card.innerHTML = `
+                        <div>
+                            <h4 style="margin-bottom:0.3rem">${ev.title}</h4>
+                            <p style="color:var(--text-muted); font-size:0.9rem;">📍 ${ev.location} | 📅 ${new Date(ev.date).toLocaleDateString()}</p>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            ${buttonsHtml}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        let registeredEventIds = new Set();
+        async function fetchMyRegistrations() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/student/my-registrations', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const regs = await res.json();
+                const container = document.getElementById('regs-list');
+                container.innerHTML = '';
+                
+                registeredEventIds.clear();
+                
+                if(regs.length === 0) {
+                     container.innerHTML = '<p>You have not registered for anything yet.</p>';
+                     return;
+                }
+                
+                regs.forEach(r => {
+                    registeredEventIds.add(r.event_id);
+                    const card = document.createElement('div');
+                    card.className = 'list-card';
+                    card.innerHTML = `
+                        <div>
+                            <h4 style="margin-bottom:0.3rem">${r.event_title}</h4>
+                            <p style="color:var(--text-muted); font-size:0.9rem;">📅 ${r.event_date ? new Date(r.event_date).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <span class="tag ${r.type}">${r.type.toUpperCase()}</span>
+                            <span class="tag ${r.status}">${r.status.toUpperCase()}</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function registerEvent(eventId, type) {
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/student/events/${eventId}/register?registration_type=${type}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    alert(`Registered successfully as ${type}!`);
+                    fetchMyRegistrations();
+                } else {
+                    const err = await res.json();
+                    alert("Failed: " + err.detail);
+                }
+            } catch (error) {
+                alert("Server Error");
+            }
+        }
+
+        // Initialize
+        async function initializeData() {
+            await fetchMyRegistrations();
+            await fetchEvents();
+        }
+        initializeData();
+    </script>
+    <script src="shared.js"></script>
+</body>
+</html>

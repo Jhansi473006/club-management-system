@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Details - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .club-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            border-radius: var(--radius-lg);
+            padding: 4rem 3rem;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            color: white;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        .club-hero::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: url('images/auth_bg.png') center/cover no-repeat;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .club-hero-logo {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 6px solid rgba(255,255,255,0.2);
+            z-index: 2;
+            flex-shrink: 0;
+            background: white;
+        }
+        .club-hero-content {
+            z-index: 2;
+            flex-grow: 1;
+        }
+        .club-hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.1;
+        }
+        .club-hero-desc {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            max-width: 800px;
+        }
+        .club-hero-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        .club-hero-actions .btn {
+            background: white;
+            color: var(--primary);
+        }
+        .club-hero-actions .btn:hover {
+            background: var(--bg-main);
+        }
+        .club-hero-actions .btn-outline {
+            background: transparent;
+            color: white;
+            border-color: rgba(255,255,255,0.5);
+        }
+        .club-hero-actions .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: white;
+        }
+
+        .grid-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start; }
+        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } .club-hero { flex-direction: column; text-align: center; } .club-hero-actions { justify-content: center; } }
+        
+        .section-box { background: var(--bg-card); padding: 2rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+        .section-box h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--text-main); font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+        
+        .event-item { border-bottom: 1px solid var(--border); padding: 1.5rem 0; transition: transform 0.2s; display: flex; gap: 1.5rem; align-items: flex-start; cursor: pointer; }
+        .event-item:last-child { border-bottom: none; }
+        .event-item:hover { transform: translateY(-2px); }
+        
+        .event-item img { width: 120px; height: 80px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
+        .event-info h3 { color: var(--text-main); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; }
+        .event-info .meta { color: var(--primary); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; gap: 1rem; }
+        .event-info p { color: var(--text-muted); font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .coordinator-item { display: flex; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+        .coordinator-item:last-child { border-bottom: none; }
+        .coordinator-item img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light); }
+        .coordinator-info h3 { font-size: 1rem; color: var(--text-main); margin-bottom: 0.1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .role-badge { font-size: 0.65rem; background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 600; }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="dashboard-layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 3rem;">
+                <a href="index.html" class="sidebar-logo" style="text-decoration:none; margin-bottom:0;">
+                    <i data-feather="book-open" style="width:28px; height:28px; color:var(--primary);"></i>
+                    ClubHub
+                </a>
+                <button class="sidebar-toggle-btn" onclick="document.querySelector('.dashboard-layout').classList.toggle('sidebar-collapsed')">
+                    <i data-feather="sidebar"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item"><i data-feather="home"></i> <span>Home</span></a>
+                <a href="explore_clubs.html" class="nav-item active"><i data-feather="users"></i> <span>Clubs</span></a>
+            </nav>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="main-panel">
+            <header class="dashboard-header">
+                <div class="search-bar" style="visibility: hidden;">
+                    <i data-feather="search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <div class="header-actions">
+                    <div class="auth-buttons" id="auth-buttons-container">
+                        <a href="login.html" class="btn btn-outline">Login</a>
+                        <a href="register.html" class="btn">Register</a>
+                    </div>
+                </div>
+            </header>
+
+            <div id="club-content">
+                <div class="loading">Loading Club Details...</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        feather.replace();
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        const urlParams = new URLSearchParams(window.location.search);
+        const clubId = urlParams.get('id');
+
+        if (!clubId) {
+            document.getElementById('club-content').innerHTML = '<h1 style="text-align: center; margin-top: 5rem; color: #ef4444;">Club not found.</h1>';
+        } else {
+            fetchClubDetails();
+        }
+
+        async function fetchClubDetails() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/public/club/${clubId}`);
+                if (!res.ok) throw new Error('Club not found');
+                const data = await res.json();
+                
+                const club = data.club;
+                const events = data.events;
+                const announcements = data.announcements;
+
+                let logo = club.logo_url;
+                if (!logo || logo === 'null') {
+                    logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(club.name)}&size=300&background=random`;
+                } else if (logo.startsWith('/')) {
+                    logo = API_BASE_URL + logo;
+                }
+
+                let html = `
+                    <div class="club-hero stagger-1">
+                        <img src="${logo}" alt="${club.name}" class="club-hero-logo">
+                        <div class="club-hero-content">
+                            <h1 class="club-hero-title">${club.name}</h1>
+                            <p class="club-hero-desc">${club.description || 'No description provided.'}</p>
+                            <div class="club-hero-actions">
+                `;
+
+                if (club.contact_email) html += `<a href="mailto:${club.contact_email}" class="btn"><i data-feather="mail" style="margin-right:0.5rem; width:16px;"></i> Email Us</a>`;
+                if (club.instagram_link) html += `<a href="${club.instagram_link}" target="_blank" class="btn btn-outline"><i data-feather="instagram" style="margin-right:0.5rem; width:16px;"></i> Instagram</a>`;
+                
+                html += `</div></div></div>`;
+                html += `<div class="grid-layout stagger-2"><div class="main-column">`;
+
+                const now = new Date();
+                const activeEvents = events.filter(e => new Date(e.date) >= now);
+                const pastEvents = events.filter(e => new Date(e.date) < now);
+
+                const renderEventItem = (e) => {
+                        let eImage = e.image_url;
+                        if (!eImage || eImage === 'null') {
+                            eImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(e.title)}&size=300&background=random`;
+                        } else if (eImage.startsWith('/')) {
+                            eImage = API_BASE_URL + eImage;
+                        }
+
+                        return `
+                        <div class="event-item" onclick="window.location.href='event.html?id=${e.id}'">
+                            <img src="${eImage}" alt="Event poster">
+                            <div class="event-info">
+                                <h3>${e.title}</h3>
+                                <div class="meta">
+                                    <span><i data-feather="calendar" style="width:14px; height:14px;"></i> ${new Date(e.date).toLocaleDateString()}</span>
+                                    <span><i data-feather="map-pin" style="width:14px; height:14px;"></i> ${e.location}</span>
+                                </div>
+                                <p>${e.description}</p>
+                            </div>
+                        </div>`;
+                };
+
+                html += `<div class="section-box"><h2>Upcoming Events</h2>`;
+                if (activeEvents.length === 0) {
+                    html += `<p style="color: var(--text-muted);">No upcoming events scheduled.</p>`;
+                } else {
+                    activeEvents.forEach(e => html += renderEventItem(e));
+                }
+                html += `</div>`;
+
+                html += `<div class="section-box"><h2>Past Event Galleries</h2>`;
+                if (pastEvents.length === 0) {
+                    html += `<p style="color: var(--text-muted);">No past events.</p>`;
+                } else {
+                    pastEvents.forEach(e => html += renderEventItem(e));
+                }
+                html += `</div></div><div class="side-column">`;
+
+                html += `<div class="section-box"><h2>Announcements</h2>`;
+                if (announcements.length === 0) {
+                    html += `<p style="color: var(--text-muted);">No announcements.</p>`;
+                } else {
+                    announcements.forEach(a => {
+                        let content = a.content;
+                        let hiringAction = '';
+                        if (content.includes('[HIRING]')) {
+                            content = content.replace('[HIRING]', '').trim();
+                            hiringAction = `<button onclick="applyCoordinator(${clubId})" class="btn" style="margin-top: 1rem; width: 100%; font-size: 0.9rem;">Apply for Coordinator</button>`;
+                        }
+
+                        html += `
+                        <div style="border-bottom: 1px solid var(--border); padding: 1rem 0;">
+                            <h3 style="color: var(--text-main); font-weight: 700; font-size: 1rem;">${a.title}</h3>
+                            <div style="color: var(--primary); font-size: 0.8rem; font-weight: 600; margin: 0.3rem 0;">${new Date(a.created_at).toLocaleDateString()}</div>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">${content}</p>
+                            ${hiringAction}
+                        </div>`;
+                    });
+                }
+                html += `</div>`;
+
+                let coordinatorHtml = `<div class="section-box"><h2>Coordinators</h2>`;
+                if (data.coordinators.length === 0) {
+                    coordinatorHtml += `<p style="color: var(--text-muted);">No approved coordinators yet.</p>`;
+                } else {
+                    data.coordinators.forEach(c => {
+                        let cImage = c.photo_url;
+                        if (!cImage || cImage === 'null') {
+                            cImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&size=150&background=random`;
+                        } else if (cImage.startsWith('/')) {
+                            cImage = API_BASE_URL + cImage;
+                        }
+
+                        coordinatorHtml += `
+                        <div class="coordinator-item">
+                            <img src="${cImage}" alt="${c.name}">
+                            <div class="coordinator-info">
+                                <h3>${c.name} <span class="role-badge">${c.role_type.toUpperCase()}</span></h3>
+                            </div>
+                        </div>`;
+                    });
+                }
+                coordinatorHtml += `</div></div></div>`;
+
+                html = html + coordinatorHtml;
+
+                document.getElementById('club-content').innerHTML = html;
+                feather.replace();
+            } catch (err) {
+                document.getElementById('club-content').innerHTML = '<div class="loading" style="color: #ef4444;">Failed to load club details.</div>';
+            }
+        }
+
+        async function applyCoordinator(id) {
+            const token = localStorage.getItem('token');
+            if(!token) {
+                alert("Please login as a student to apply.");
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/student/clubs/${id}/apply-coordinator`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if(res.ok) {
+                    alert("Application submitted successfully! It is now pending leader approval.");
+                } else {
+                    const err = await res.json();
+                    alert("Application failed: " + err.detail);
+                }
+            } catch(e) {
+                alert("Server error");
+            }
+        }
+    </script>
+    <script src="shared.js"></script>
+</body>
+</html>

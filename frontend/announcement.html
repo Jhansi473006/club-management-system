@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcement Details - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="dashboard-header" style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem; background: var(--bg-card); border-bottom: 1px solid var(--border);">
+        <div class="logo" style="display:flex; align-items:center; gap: 0.5rem; font-weight: 800; color: var(--primary); font-size: 1.5rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+            </svg>
+            <a href="index.html" style="color: inherit; text-decoration: none;">ClubHub</a>
+        </div>
+        <div class="auth-buttons">
+            <a href="login.html" class="btn btn-outline">Login</a>
+        </div>
+    </header>
+
+    <main style="max-width: 900px; margin: 4rem auto; padding: 2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); min-height: 500px;">
+        <div id="announcement-loader" class="loading">Loading announcement details...</div>
+        
+        <div id="announcement-content" style="display: none;">
+            <div id="ann-poster-container" style="display: none; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 3rem; background: var(--bg-main); height: 500px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft);">
+                <img id="ann-poster" src="" alt="Poster" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            </div>
+            
+            <div style="max-width: 75ch; margin: 0 auto;">
+                <h1 id="ann-title" style="font-size: 3rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; line-height: 1.1; letter-spacing: -0.5px;"></h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 1rem;">
+                    <span id="ann-club" style="color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;"></span>
+                    <span>•</span>
+                    <span id="ann-date"></span>
+                </div>
+                
+                <div id="ann-text" style="font-size: 1.15rem; line-height: 1.8; color: var(--text-main); margin-bottom: 4rem; white-space: pre-wrap; font-family: 'Inter', sans-serif;"></div>
+            
+            <div id="ann-actions" style="display: none; background: rgba(99, 102, 241, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.2);">
+                <h3 style="margin-bottom: 1rem; color: var(--primary);">Action Required</h3>
+                <p id="ann-deadline-text" style="margin-bottom: 1rem; color: var(--text-muted); font-weight: 500; display: none;">
+                    ⏳ Deadline: <span id="ann-deadline" style="color: var(--text-main); font-weight: 700;"></span>
+                    <br><span id="ann-countdown" style="color: #eab308; font-weight: 800; font-size: 1.1rem; margin-top: 0.5rem; display: inline-block;"></span>
+                </p>
+                <a id="ann-link" href="#" target="_blank" class="btn" style="display: inline-block;">Register / Take Action</a>
+            </div>
+            </div> <!-- End max-width container -->
+        </div>
+    </main>
+
+    <script src="shared.js"></script>
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+        
+        async function fetchAnnouncementDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (!id) {
+                document.getElementById('announcement-loader').innerText = "Invalid announcement ID.";
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/public/announcement/${id}`);
+                if (!res.ok) throw new Error("Announcement not found");
+                const data = await res.json();
+                
+                document.getElementById('announcement-loader').style.display = 'none';
+                document.getElementById('announcement-content').style.display = 'block';
+                
+                document.title = data.title + " - ClubHub";
+                document.getElementById('ann-title').innerText = data.title;
+                document.getElementById('ann-text').innerText = data.content;
+                document.getElementById('ann-club').innerText = data.club_name;
+                document.getElementById('ann-date').innerText = new Date(data.created_at).toLocaleDateString();
+                
+                if (data.poster_url && data.poster_url !== 'null') {
+                    let image = data.poster_url;
+                    if (image.startsWith('/')) image = API_BASE + image;
+                    document.getElementById('ann-poster-container').style.display = 'flex';
+                    document.getElementById('ann-poster').src = image;
+                } else {
+                    document.getElementById('ann-poster-container').style.display = 'none';
+                }
+                
+                let showActions = false;
+                if (data.registration_link) {
+                    showActions = true;
+                    document.getElementById('ann-link').href = data.registration_link;
+                    document.getElementById('ann-link').style.display = 'inline-block';
+                } else {
+                    document.getElementById('ann-link').style.display = 'none';
+                }
+                
+                if (data.deadline) {
+                    showActions = true;
+                    document.getElementById('ann-deadline-text').style.display = 'block';
+                    const deadlineDate = new Date(data.deadline);
+                    document.getElementById('ann-deadline').innerText = deadlineDate.toLocaleString();
+                    
+                    const timerEl = document.getElementById('ann-countdown');
+                    const updateCountdown = () => {
+                        const t = deadlineDate.getTime() - new Date().getTime();
+                        if (t < 0) {
+                            timerEl.innerHTML = "Registration Closed";
+                            timerEl.style.color = "#ef4444";
+                            document.getElementById('ann-link').style.display = 'none';
+                            return;
+                        }
+                        const days = Math.floor(t / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((t % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((t % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((t % (1000 * 60)) / 1000);
+                        timerEl.innerHTML = `Closing in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                    };
+                    updateCountdown();
+                    setInterval(updateCountdown, 1000);
+                }
+                
+                if (showActions) {
+                    document.getElementById('ann-actions').style.display = 'block';
+                }
+                
+            } catch (e) {
+                document.getElementById('announcement-loader').innerText = "Failed to load announcement details. It may have been deleted.";
+                document.getElementById('announcement-loader').style.color = "#ef4444";
+            }
+        }
+        
+        document.addEventListener("DOMContentLoaded", fetchAnnouncementDetails);
+    </script>
+</body>
+</html>

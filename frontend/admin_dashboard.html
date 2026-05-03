@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Hub - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-layout { display: flex; gap: 2rem; margin-top: 2rem; }
+        .sidebar { position: static; height: auto; width: 250px; background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s ease; overflow: hidden; white-space: nowrap; }
+        .sidebar.collapsed { width: 0; padding: 0; border: none; opacity: 0; margin-left: -2rem; }
+        .sidebar-item { padding: 0.75rem 1rem; color: var(--text-muted); cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem; transition: all 0.2s; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.05); }
+        .sidebar-item.active { background: var(--accent); color: #fff; }
+        .main-panel { margin-left: 0; flex: 1; background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s ease; min-width: 0; }
+        .panel-section { display: none; }
+        .panel-section.active { display: block; animation: fadeIn 0.3s; }
+    </style>
+</head>
+<body>
+    <header style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="logo">ClubHub <span style="font-size: 0.8rem; color: var(--accent); margin-left:1rem;">ADMIN HUB</span></div>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 500;">Home</a>
+            <button onclick="logout()" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">Logout</button>
+        </div>
+    </header>
+
+    <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <button onclick="toggleSidebar()" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-color: var(--accent); color: var(--accent);">☰</button>
+            <h1 id="welcome-text" style="margin: 0;">College Administration</h1>
+        </div>
+        
+        <div class="dashboard-layout">
+            <div class="sidebar collapsed">
+                <div class="sidebar-item active" onclick="switchPanel('panel-event')">Create College Event</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-manage-events')">Manage Events</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-announce')">Announcements</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-logo')">Update College Logo</div>
+            </div>
+
+            <div class="main-panel">
+                <!-- Create Event -->
+                <div id="panel-event" class="panel-section active">
+                    <h3>Publish College Event</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Host large-scale, college-wide events (e.g., Annual Day).</p>
+                    <form id="form-event">
+                        <label>Event Title</label>
+                        <input type="text" id="e-title" class="form-control" required>
+                        <label>Description</label>
+                        <textarea id="e-desc" rows="3" required></textarea>
+                        <label>Date & Time</label>
+                        <input type="datetime-local" id="e-date" class="form-control" required>
+                        <label>Location</label>
+                        <input type="text" id="e-loc" class="form-control" required>
+                        <label>Event Poster</label>
+                        <input type="file" id="e-image" class="form-control" accept="image/*">
+                        <button type="submit" class="btn">Broadcast Event</button>
+                    </form>
+                </div>
+
+                <!-- Manage Events -->
+                <div id="panel-manage-events" class="panel-section">
+                    <h3>Manage College Events</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Edit or delete your existing college events.</p>
+                    <div id="events-list-container">
+                        <p>Loading events...</p>
+                    </div>
+
+                    <!-- Edit Event Modal/Form -->
+                    <div id="edit-event-container" style="display: none; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; margin-top: 2rem; border: 1px solid var(--primary);">
+                        <h4 style="margin-bottom: 1rem; color: var(--accent);">Edit Event</h4>
+                        <form id="form-edit-event">
+                            <input type="hidden" id="edit-e-id">
+                            <label>Event Title</label>
+                            <input type="text" id="edit-e-title" class="form-control">
+                            <label>Description</label>
+                            <textarea id="edit-e-desc" rows="3"></textarea>
+                            <label>Date & Time</label>
+                            <input type="datetime-local" id="edit-e-date" class="form-control">
+                            <label>Location</label>
+                            <input type="text" id="edit-e-loc" class="form-control">
+                            <label>Update Event Poster</label>
+                            <input type="file" id="edit-e-image" class="form-control" accept="image/*">
+                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
+                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('edit-event-container').style.display='none'">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Announcements -->
+                <div id="panel-announce" class="panel-section">
+                    <h3>Make a College Announcement</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Broadcast an announcement to the homepage.</p>
+                    <form id="form-announce">
+                        <label>Announcement Title</label>
+                        <input type="text" id="a-title" class="form-control" required>
+                        <label>Content</label>
+                        <textarea id="a-content" rows="4" required></textarea>
+                        <label>Related Poster / Image</label>
+                        <input type="file" id="a-image" class="form-control" accept="image/*">
+                        <label>Registration Link (Optional)</label>
+                        <input type="url" id="a-link" class="form-control" placeholder="https://...">
+                        <label>Deadline (Optional)</label>
+                        <input type="datetime-local" id="a-deadline" class="form-control">
+                        <button type="submit" class="btn">Publish Announcement</button>
+                    </form>
+                </div>
+
+                <!-- Update Logo -->
+                <div id="panel-logo" class="panel-section">
+                    <h3>Update College Logo</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">This displays at the top of the overarching hierarchy.</p>
+                    <form id="form-logo">
+                        <label>Select Logo File</label>
+                        <input type="file" id="a-logo" class="form-control" accept="image/*" required>
+                        <button type="submit" class="btn">Update System Logo</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function switchPanel(panelId) {
+            document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        // Handle Event Creation
+        document.getElementById('form-event').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('title', document.getElementById('e-title').value);
+            formData.append('description', document.getElementById('e-desc').value);
+            formData.append('date', document.getElementById('e-date').value);
+            formData.append('location', document.getElementById('e-loc').value);
+            formData.append('instructions', document.getElementById('e-instructions').value);
+            formData.append('helpline', document.getElementById('e-helpline').value);
+            const deadline = document.getElementById('e-deadline').value;
+            if(deadline) formData.append('registration_deadline', deadline);
+            const img = document.getElementById('e-image').files[0];
+            if(img) formData.append('image', img);
+
+            const res = await fetch('http://127.0.0.1:8000/admin/events', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                alert("College event broadcasted successfully!");
+                e.target.reset();
+                fetchCollegeEvents();
+            } else alert("Failed to publish event.");
+        });
+
+        // Fetch and Manage Events
+        let currentEvents = [];
+
+        async function fetchCollegeEvents() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/admin/events', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    currentEvents = await res.json();
+                    const container = document.getElementById('events-list-container');
+                    if (currentEvents.length === 0) {
+                        container.innerHTML = '<p style="color: var(--text-muted);">No college events created yet.</p>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    currentEvents.forEach(e => {
+                        html += `
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem;">${e.title}</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">📅 ${new Date(e.date).toLocaleString()} | 📍 ${e.location}</p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="openEditEventById(${e.id})" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Edit</button>
+                                <button onclick="deleteEvent(${e.id})" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Delete</button>
+                            </div>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                console.error("Failed to load events", e);
+            }
+        }
+        fetchCollegeEvents();
+
+        function openEditEventById(id) {
+            const e = currentEvents.find(ev => ev.id === id);
+            if (!e) return;
+            document.getElementById('edit-event-container').style.display = 'block';
+            document.getElementById('edit-e-id').value = e.id;
+            document.getElementById('edit-e-title').value = e.title;
+            document.getElementById('edit-e-desc').value = e.description;
+            
+            if (e.date) {
+                const d = new Date(e.date);
+                const tzOffset = d.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+                document.getElementById('edit-e-date').value = localISOTime;
+            }
+            
+            document.getElementById('edit-e-loc').value = e.location;
+            document.getElementById('edit-e-image').value = ''; 
+        }
+
+        document.getElementById('form-edit-event').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-e-id').value;
+            const formData = new FormData();
+            if(document.getElementById('edit-e-title').value) formData.append('title', document.getElementById('edit-e-title').value);
+            if(document.getElementById('edit-e-desc').value) formData.append('description', document.getElementById('edit-e-desc').value);
+            if(document.getElementById('edit-e-date').value) {
+                const d = new Date(document.getElementById('edit-e-date').value).toISOString();
+                formData.append('date', d);
+            }
+            if(document.getElementById('edit-e-loc').value) formData.append('location', document.getElementById('edit-e-loc').value);
+            
+            const img = document.getElementById('edit-e-image').files[0];
+            if(img) formData.append('image', img);
+
+            const res = await fetch(`http://127.0.0.1:8000/admin/events/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Event updated successfully!");
+                document.getElementById('edit-event-container').style.display = 'none';
+                fetchCollegeEvents(); 
+            } else {
+                alert("Update failed.");
+            }
+        });
+
+        async function deleteEvent(id) {
+            if(!confirm("Are you sure you want to permanently delete this event?")) return;
+            const res = await fetch(`http://127.0.0.1:8000/admin/events/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchCollegeEvents();
+            } else {
+                alert("Delete failed.");
+            }
+        }
+
+        // Handle Logo Update
+        document.getElementById('form-logo').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('logo', document.getElementById('a-logo').files[0]);
+
+            const res = await fetch('http://127.0.0.1:8000/admin/logo', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) alert("Global logo updated.");
+            else alert("Update failed.");
+        });
+
+        // Handle Announcement Creation
+        document.getElementById('form-announce').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('title', document.getElementById('a-title').value);
+            formData.append('content', document.getElementById('a-content').value);
+            
+            const link = document.getElementById('a-link').value;
+            if(link) formData.append('registration_link', link);
+            
+            const deadline = document.getElementById('a-deadline').value;
+            if(deadline) formData.append('deadline', deadline);
+            
+            const img = document.getElementById('a-image').files[0];
+            if(img) formData.append('image', img);
+
+            const res = await fetch('http://127.0.0.1:8000/admin/announcements', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Announcement published successfully!");
+                e.target.reset();
+            } else {
+                alert("Failed to publish announcement.");
+            }
+        });
+    </script>
+    <script src="shared.js"></script>
+</body>
+</html>

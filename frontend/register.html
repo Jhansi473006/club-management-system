@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        .split-layout { display: flex; height: 100vh; width: 100%; }
+        
+        /* Left Image Side */
+        .split-image {
+            flex: 1;
+            background: url('images/auth_bg.png') center/cover no-repeat;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .split-image::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(107, 70, 193, 0.4), rgba(107, 70, 193, 0.8));
+        }
+        .image-content {
+            position: relative;
+            z-index: 10;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            max-width: 80%;
+        }
+        .image-content h2 { font-size: 2.2rem; margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif; }
+        .image-content p { font-size: 1rem; opacity: 0.9; }
+        
+        /* Right Form Side */
+        .split-form {
+            flex: 1;
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .split-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .split-header .logo { font-size: 1.4rem; font-weight: 800; color: var(--primary); font-family: 'Outfit', sans-serif; text-decoration: none;}
+        .split-header a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
+        
+        .form-wrapper {
+            margin: auto;
+            width: 100%;
+            max-width: 520px;
+            padding: 0 1.5rem 1.5rem;
+        }
+        .form-wrapper h2 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 0.2rem;
+            text-align: center;
+        }
+        .form-wrapper > p {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .form-group { margin-bottom: 0.8rem; }
+        .form-label { display: block; margin-bottom: 0.2rem; color: var(--text-main); font-size: 0.85rem; font-weight: 500; }
+        .form-control {
+            width: 100%; padding: 0.55rem 0.8rem;
+            background: white; border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-main); font-family: inherit; transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .btn-full { width: 100%; padding: 0.65rem; font-size: 0.95rem; margin-top: 0.5rem; border-radius: 8px;}
+        
+        .tabs { display: flex; gap: 1rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); justify-content: center; }
+        .tab { padding: 0.4rem 1rem; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; transition: all 0.3s; font-weight: 500; font-size: 0.95rem;}
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        
+        .form-section { display: none; }
+        .form-section.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Grid Layout for compact forms */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem 1rem;
+        }
+
+        h3.section-title {
+            margin: 0.8rem 0 0.4rem;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .split-image { display: none; }
+            .split-form { overflow-y: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="split-layout">
+        <!-- Left Side Image -->
+        <div class="split-image">
+            <div class="image-content">
+                <h2>Join the Community</h2>
+                <p>Register today to explore, connect, and participate in vibrant campus clubs.</p>
+            </div>
+        </div>
+
+        <!-- Right Side Form -->
+        <div class="split-form">
+            <div class="split-header">
+                <a href="index.html" class="logo">ClubHub</a>
+                <a href="index.html">← Back to Home</a>
+            </div>
+            
+            <div class="form-wrapper">
+                <h2>Create Account</h2>
+                <p>Select your role and fill in your details.</p>
+                
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('student-tab')">Student</div>
+                    <div class="tab" onclick="switchTab('leader-tab')">Club Leader</div>
+                    <div class="tab" onclick="switchTab('admin-tab')">Admin</div>
+                </div>
+
+                <!-- Student Registration -->
+                <div id="student-tab" class="form-section active">
+                    <form id="student-form">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" id="s-name" class="form-control" placeholder="John Doe" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" id="s-email" class="form-control" placeholder="john@college.edu" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Roll Number</label>
+                                <input type="text" id="s-roll" class="form-control" placeholder="2024XX001" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <input type="password" id="s-password" class="form-control" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-full">Register as Student</button>
+                    </form>
+                </div>
+
+                <!-- Leader + Club Registration -->
+                <div id="leader-tab" class="form-section">
+                    <form id="leader-form">
+                        <h3 class="section-title">Your Details</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" id="l-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" id="l-email" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Roll Number (Optional)</label>
+                                <input type="text" id="l-roll" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <input type="password" id="l-password" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <h3 class="section-title">Club Details</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Club Name</label>
+                                <input type="text" id="c-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Club Logo</label>
+                                <input type="file" id="c-logo" class="form-control" accept="image/*" style="padding: 0.35rem 0.5rem;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Club Description</label>
+                            <textarea id="c-desc" class="form-control" rows="2" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-full">Register Club & Leader</button>
+                    </form>
+                </div>
+                
+                <!-- Admin Registration -->
+                <div id="admin-tab" class="form-section">
+                    <form id="admin-form">
+                        <h3 class="section-title" style="color: #ef4444;">System Administrator</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Admin Name</label>
+                                <input type="text" id="a-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Admin Email</label>
+                                <input type="email" id="a-email" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <input type="password" id="a-password" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">System Secret Key</label>
+                                <input type="password" id="a-secret" class="form-control" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-full" style="background: #ef4444; border-color: #ef4444;">Register as Admin</button>
+                    </form>
+                </div>
+                
+                <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    Already have an account? <a href="login.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Student Submit
+        document.getElementById('student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('s-name').value,
+                email: document.getElementById('s-email').value,
+                password: document.getElementById('s-password').value,
+                role: 'student',
+                roll_number: document.getElementById('s-roll').value
+            };
+            
+            try {
+                const res = await fetch('http://127.0.0.1:8000/register/student', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert('Student registered successfully! Please check your email for the verification code.');
+                    window.location.href = `verify.html?email=${encodeURIComponent(data.email)}`;
+                } else {
+                    const err = await res.json();
+                    alert('Registration failed: ' + err.detail);
+                }
+            } catch (error) {
+                alert('Server error');
+            }
+        });
+
+        // Leader Submit
+        document.getElementById('leader-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('name', document.getElementById('l-name').value);
+            formData.append('email', document.getElementById('l-email').value);
+            formData.append('password', document.getElementById('l-password').value);
+            formData.append('roll_number', document.getElementById('l-roll').value);
+            formData.append('club_name', document.getElementById('c-name').value);
+            formData.append('club_description', document.getElementById('c-desc').value);
+            
+            const logoFile = document.getElementById('c-logo').files[0];
+            if (logoFile) formData.append('logo', logoFile);
+            
+            try {
+                const res = await fetch('http://127.0.0.1:8000/register/leader', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    alert('Club & Leader registered successfully! Please check your email for the verification code.');
+                    window.location.href = `verify.html?email=${encodeURIComponent(document.getElementById('l-email').value)}`;
+                } else {
+                    const err = await res.json();
+                    alert('Registration failed: ' + err.detail);
+                }
+            } catch (error) {
+                alert('Server error');
+            }
+        });
+
+        // Admin Submit
+        document.getElementById('admin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('a-name').value,
+                email: document.getElementById('a-email').value,
+                password: document.getElementById('a-password').value,
+                role: 'admin'
+            };
+            
+            try {
+                const secret = document.getElementById('a-secret').value;
+                const res = await fetch(`http://127.0.0.1:8000/register/admin?secret_key=${secret}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    alert('Admin registered successfully! Please check your email for the verification code.');
+                    window.location.href = `verify.html?email=${encodeURIComponent(data.email)}`;
+                } else {
+                    const err = await res.json();
+                    alert('Registration failed: ' + err.detail);
+                }
+            } catch (error) {
+                alert('Server error');
+            }
+        });
+    </script>
+    <script src="shared.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClubHub - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link crossorigin rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- SVG Icons script for clean icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="dashboard-body">
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 3rem;">
+                <a href="index.html" onclick="if(window.location.pathname.endsWith('index.html') || window.location.pathname === '/') { window.location.reload(); return false; }" class="sidebar-logo" style="text-decoration:none; margin-bottom:0;">
+                    <i data-feather="book-open" style="width:28px; height:28px; color:var(--primary);"></i>
+                    ClubHub
+                </a>
+                <button class="sidebar-toggle-btn" onclick="document.querySelector('.dashboard-layout').classList.toggle('sidebar-collapsed')">
+                    <i data-feather="sidebar"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item active"><i data-feather="home"></i> <span>Home</span></a>
+                <a href="#announcements" class="nav-item"><i data-feather="bell"></i> <span>Announcements</span></a>
+                <a href="#clubs" class="nav-item"><i data-feather="users"></i> <span>Clubs</span></a>
+                <a href="#events" class="nav-item"><i data-feather="calendar"></i> <span>Events</span></a>
+                <a href="#" class="nav-item"><i data-feather="info"></i> <span>About Us</span></a>
+                <a href="#" class="nav-item"><i data-feather="mail"></i> <span>Contact</span></a>
+            </nav>
+
+            <div class="sidebar-quote">
+                <div class="quote-card">
+                    <p>"Clubs are the heartbeat of campus life."</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="main-panel">
+            <!-- TOP HEADER -->
+            <header class="dashboard-header">
+                <div class="search-bar">
+                    <i data-feather="search"></i>
+                    <input type="text" placeholder="Search clubs, events...">
+                </div>
+                <div class="header-actions">
+                    <div class="auth-buttons" id="auth-buttons-container">
+                        <!-- Dynamic via JS: Login/Register or Profile -->
+                        <a href="login.html" class="btn btn-outline">Login</a>
+                        <a href="register.html" class="btn">Register</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- HERO SECTION -->
+            <section class="hero-banner stagger-1">
+                <div class="hero-content">
+                    <h1>Welcome to ClubHub</h1>
+                    <p>Clubs are the heartbeat of college life.</p>
+                    <a href="explore_clubs.html" class="btn btn-hero" style="text-decoration:none; display:inline-block;">Explore Now</a>
+                </div>
+                <div class="hero-illustration">
+                    <!-- Added via CSS or img tag -->
+                    <img src="images/hero_campus.png" alt="Campus Illustration">
+                </div>
+            </section>
+
+            <!-- DASHBOARD GRID CONTENT -->
+            <div class="content-grid stagger-2">
+                
+                <!-- Announcements Column -->
+                <section class="grid-col" id="announcements">
+                    <div class="section-header">
+                        <h2><i data-feather="bell" class="icon-title"></i> Announcements</h2>
+                    </div>
+                    <div id="announcements-container" class="card-list">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </section>
+
+                <!-- Upcoming Events Column -->
+                <section class="grid-col" id="events">
+                    <div class="section-header">
+                        <h2><i data-feather="calendar" class="icon-title"></i> Events</h2>
+                    </div>
+                    <div id="events-container" class="card-list">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </section>
+
+                <!-- Top Clubs Column -->
+                <section class="grid-col" id="clubs">
+                    <div class="section-header">
+                        <h2><i data-feather="star" class="icon-title"></i> Top Clubs</h2>
+                    </div>
+                    <div id="clubs-container" class="card-list">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- CTA SECTION -->
+            <section class="cta-section stagger-3">
+                <h2>Be a Part of Something Bigger!</h2>
+                <p>Join a club today and start making memories.</p>
+                <a href="explore_clubs.html" class="btn btn-large">Explore Clubs</a>
+            </section>
+
+            <!-- FOOTER -->
+            <footer class="dashboard-footer">
+                <div class="footer-col">
+                    <h3>ClubHub</h3>
+                    <p>The ultimate campus community platform.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <a href="#">Home</a>
+                    <a href="#">About</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="#">Guidelines</a>
+                    <a href="#">FAQ</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+      feather.replace();
+    </script>
+    <script src="shared.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

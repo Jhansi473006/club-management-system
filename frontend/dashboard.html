@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-container { text-align: center; margin-top: 5rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">ClubHub</div>
+        <div class="auth-buttons">
+            <button onclick="logout()" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">Logout</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="dashboard-container" id="dashboard-content">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Loading Dashboard...</h1>
+        </div>
+    </main>
+
+    <script>
+        // Simple JWT token decoder
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function renderDashboard(role, email) {
+            const container = document.getElementById('dashboard-content');
+            let contentHtml = `<h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Welcome, ${email}!</h1>`;
+            contentHtml += `<p style="color: var(--accent); font-size: 1.2rem; margin-bottom: 2rem;">Role Validated: <strong style="text-transform: uppercase;">${role}</strong></p>`;
+
+            if (role === "admin") {
+                contentHtml += `
+                    <div style="background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); max-width: 600px; margin: auto;">
+                        <h3 style="margin-bottom:1rem;">Admin Controls</h3>
+                        <button class="btn btn-full" style="margin-bottom:1rem;">Manage College Events</button>
+                        <button class="btn btn-full" style="background:var(--bg-dark);">Update College Logo</button>
+                    </div>`;
+            } else if (role === "leader") {
+                contentHtml += `
+                    <div style="background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); max-width: 600px; margin: auto;">
+                        <h3 style="margin-bottom:1rem;">Club Management</h3>
+                        <button class="btn btn-full" style="margin-bottom:1rem;">Edit Club Profile</button>
+                        <button class="btn btn-full" style="margin-bottom:1rem;">Create New Event</button>
+                        <button class="btn btn-full" style="background:var(--bg-dark);">Manage Coordinators</button>
+                    </div>`;
+            } else if (role === "student") {
+                contentHtml += `
+                    <div style="background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); max-width: 600px; margin: auto;">
+                        <h3 style="margin-bottom:1rem;">Student Hub</h3>
+                        <button class="btn btn-full" style="margin-bottom:1rem;">Browse Clubs</button>
+                        <button class="btn btn-full" style="background:var(--bg-dark);">My Event Registrations</button>
+                    </div>`;
+            }
+
+            container.innerHTML = contentHtml;
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const payload = parseJwt(token);
+            if (!payload) {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Redirect based on role
+            if (payload.role === "admin") {
+                window.location.href = 'admin_dashboard.html';
+            } else if (payload.role === "leader") {
+                window.location.href = 'leader_dashboard.html';
+            } else if (payload.role === "student") {
+                window.location.href = 'student_dashboard.html';
+            } else {
+                alert("Unknown role");
+            }
+        }
+        
+        checkAuth();
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

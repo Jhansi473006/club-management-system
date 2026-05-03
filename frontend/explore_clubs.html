@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Clubs - ClubHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link crossorigin rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .clubs-page-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .club-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .club-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+        .club-card-img {
+            width: 100%;
+            height: 160px;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+            background: var(--bg-main);
+            padding: 1rem;
+        }
+        .club-card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+        .club-card-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="dashboard-layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 3rem;">
+                <a href="index.html" class="sidebar-logo" style="text-decoration:none; margin-bottom:0;">
+                    <i data-feather="book-open" style="width:28px; height:28px; color:var(--primary);"></i>
+                    ClubHub
+                </a>
+                <button class="sidebar-toggle-btn" onclick="document.querySelector('.dashboard-layout').classList.toggle('sidebar-collapsed')">
+                    <i data-feather="sidebar"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item"><i data-feather="home"></i> <span>Home</span></a>
+                <a href="index.html#announcements" class="nav-item"><i data-feather="bell"></i> <span>Announcements</span></a>
+                <a href="explore_clubs.html" class="nav-item active"><i data-feather="users"></i> <span>Clubs</span></a>
+                <a href="index.html#events" class="nav-item"><i data-feather="calendar"></i> <span>Events</span></a>
+            </nav>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="main-panel">
+            <header class="dashboard-header">
+                <div class="search-bar">
+                    <i data-feather="search"></i>
+                    <input type="text" id="club-search" placeholder="Search clubs...">
+                </div>
+                <div class="header-actions">
+                    <div class="auth-buttons" id="auth-buttons-container">
+                        <a href="login.html" class="btn btn-outline">Login</a>
+                        <a href="register.html" class="btn">Register</a>
+                    </div>
+                </div>
+            </header>
+
+            <div class="section-header" style="margin-top: 2rem;">
+                <h1 style="font-size: 2.5rem; color: var(--text-main); font-weight: 800; font-family: 'Outfit', sans-serif;">Explore Clubs</h1>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">Find your perfect community and join the action.</p>
+            </div>
+
+            <div id="all-clubs-container" class="clubs-page-grid">
+                <div class="loading">Loading clubs...</div>
+            </div>
+
+            <footer class="dashboard-footer" style="margin-top: 4rem;">
+                <div class="footer-col">
+                    <h3>ClubHub</h3>
+                    <p>The ultimate campus community platform.</p>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+      feather.replace();
+
+      const API_BASE_URL = 'http://127.0.0.1:8000';
+      
+      document.addEventListener('DOMContentLoaded', fetchAllClubs);
+
+      async function fetchAllClubs() {
+          const container = document.getElementById('all-clubs-container');
+          try {
+              const response = await fetch(`${API_BASE_URL}/public/clubs-slideshow`);
+              const clubs = await response.json();
+              
+              container.innerHTML = '';
+              
+              if (clubs.length === 0) {
+                  container.innerHTML = '<div class="loading">No clubs available yet.</div>';
+                  return;
+              }
+
+              clubs.forEach(club => {
+                  let logo = club.logo_url;
+                  if (!logo || logo === 'null') {
+                      logo = `https://ui-avatars.com/api/?name=${encodeURIComponent(club.name)}&size=300&background=random`;
+                  } else if (logo.startsWith('/')) {
+                      logo = API_BASE_URL + logo;
+                  }
+                  
+                  const card = document.createElement('a');
+                  card.href = `club.html?id=${club.id}`;
+                  card.className = 'club-card stagger-1';
+                  
+                  card.innerHTML = `
+                      <img src="${logo}" alt="${club.name}" class="club-card-img">
+                      <h3 class="club-card-title">${club.name}</h3>
+                      <p class="club-card-desc">${club.description || 'No description provided.'}</p>
+                      <div style="color: var(--primary); font-size: 0.9rem; font-weight: 600;">View Details &rarr;</div>
+                  `;
+                  container.appendChild(card);
+              });
+          } catch (error) {
+              container.innerHTML = '<div class="loading" style="color: #ef4444;">Failed to load clubs.</div>';
+          }
+      }
+    </script>
+    <script src="shared.js"></script>
+</body>
+</html>

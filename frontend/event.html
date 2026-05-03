@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .event-hero {
+            position: relative;
+            height: 350px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .event-hero img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .event-hero-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(107,70,193,0.3) 0%, rgba(0,0,0,0.8) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 3rem;
+            color: #fff;
+        }
+        .event-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2.5rem;
+        }
+        .detail-box {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .detail-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.75rem;
+        }
+        .coordinator-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .coordinator-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .reg-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            width: fit-content;
+            margin-bottom: 1rem;
+        }
+        .badge-open { background: var(--primary); color: white; }
+        .badge-closed { background: #ef4444; color: white; }
+        
+        @media (max-width: 900px) {
+            .event-grid { grid-template-columns: 1fr; }
+            .event-hero { height: 250px; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="dashboard-layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 3rem;">
+                <a href="index.html" class="sidebar-logo" style="text-decoration:none; margin-bottom:0;">
+                    <i data-feather="book-open" style="width:28px; height:28px; color:var(--primary);"></i>
+                    ClubHub
+                </a>
+                <button class="sidebar-toggle-btn" onclick="document.querySelector('.dashboard-layout').classList.toggle('sidebar-collapsed')">
+                    <i data-feather="sidebar"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item"><i data-feather="home"></i> <span>Home</span></a>
+                <a href="explore_clubs.html" class="nav-item"><i data-feather="users"></i> <span>Clubs</span></a>
+                <a href="index.html#events" class="nav-item active"><i data-feather="calendar"></i> <span>Events</span></a>
+            </nav>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="main-panel">
+            <header class="dashboard-header">
+                <div class="search-bar" style="visibility: hidden;">
+                    <i data-feather="search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <div class="header-actions">
+                    <div class="auth-buttons" id="auth-buttons-container">
+                        <a href="login.html" class="btn btn-outline">Login</a>
+                        <a href="register.html" class="btn">Register</a>
+                    </div>
+                </div>
+            </header>
+
+            <div id="event-detail-container">
+                <div class="loading">Loading detailed information...</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        feather.replace();
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+
+        async function fetchEventDetails() {
+            if (!eventId) {
+                document.getElementById('event-detail-container').innerHTML = '<h2 style="color:#ef4444; text-align:center;">Event ID not specified.</h2>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/public/event/${eventId}`);
+                if (!res.ok) throw new Error("Event not found");
+                const data = await res.json();
+                renderEvent(data);
+            } catch (err) {
+                document.getElementById('event-detail-container').innerHTML = `<h2 style="color:#ef4444; text-align:center;">${err.message}</h2>`;
+            }
+        }
+
+        async function renderEvent(data) {
+            const { event, club, coordinators, volunteers } = data;
+            const eventDate = new Date(event.date);
+            const deadline = event.registration_deadline ? new Date(event.registration_deadline) : null;
+            const now = new Date();
+            
+            const isClosed = (deadline && now > deadline) || (now > eventDate);
+            const badgeClass = isClosed ? 'badge-closed' : 'badge-open';
+            const badgeText = isClosed ? 'Registration Closed' : 'Registration Open';
+
+            let image = event.image_url;
+            if (!image || image === 'null') {
+                image = `https://ui-avatars.com/api/?name=${encodeURIComponent(event.title)}&size=800&background=random`;
+            } else if (image.startsWith('/')) {
+                image = API_BASE_URL + image;
+            }
+
+            const allStaff = [...(coordinators || []), ...(volunteers || [])];
+            
+            let photosHtml = '';
+            if (event.photos && event.photos.length > 0) {
+                photosHtml = `
+                    <div class="detail-box">
+                        <h2 class="detail-title">Event Gallery</h2>
+                        <div id="event-gallery" style="position: relative; overflow: hidden; height: 350px; border-radius: 12px; background: #000;">
+                            ${event.photos.map((p, i) => {
+                                let pUrl = p.photo_url.startsWith('/') ? API_BASE_URL + p.photo_url : p.photo_url;
+                                return `<img src="${pUrl}" class="gallery-slide" style="position: absolute; width:100%; height:100%; object-fit:cover; opacity:${i===0?1:0}; transition: opacity 0.5s;">`;
+                            }).join('')}
+                            <button onclick="window.changeSlide(-1)" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:10px; cursor:pointer; border-radius:50%; z-index:10;">❮</button>
+                            <button onclick="window.changeSlide(1)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:white; border:none; padding:10px; cursor:pointer; border-radius:50%; z-index:10;">❯</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const container = document.getElementById('event-detail-container');
+            container.innerHTML = `
+                <div class="event-hero stagger-1">
+                    <img src="${image}" alt="${event.title}">
+                    <div class="event-hero-overlay">
+                        <span class="reg-badge ${badgeClass}">${badgeText}</span>
+                        <h1 style="font-size: 3.5rem; margin: 0 0 0.5rem 0; font-family: 'Outfit', sans-serif; font-weight:800; line-height:1.1;">${event.title}</h1>
+                        <p style="font-size: 1.2rem; opacity: 0.9; font-weight: 500;">${club ? club.name : 'College Level Event'}</p>
+                    </div>
+                </div>
+
+                <div class="event-grid stagger-2">
+                    <div class="main-details">
+                        <div class="detail-box">
+                            <h2 class="detail-title">About the Event</h2>
+                            <p style="white-space: pre-wrap; font-size: 1.05rem; color: var(--text-muted); line-height: 1.7;">${event.description}</p>
+                        </div>
+                        
+                        <div class="detail-box">
+                            <h2 class="detail-title">Special Instructions</h2>
+                            <p style="white-space: pre-wrap; color: var(--text-muted); line-height:1.6;">${event.instructions || 'No specific instructions provided. Just bring your enthusiasm!'}</p>
+                        </div>
+                        
+                        ${photosHtml}
+                    </div>
+
+                    <div class="side-details">
+                        <div class="detail-box" style="text-align: center;">
+                            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;"><i data-feather="calendar" style="width:16px; height:16px; vertical-align:middle;"></i> Date & Time</p>
+                            <p style="font-size: 1.2rem; font-weight: 700; color: var(--text-main);">${eventDate.toLocaleDateString()} <br> ${eventDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                            <hr style="margin: 1.5rem 0; border:none; border-top:1px solid var(--border);">
+                            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;"><i data-feather="map-pin" style="width:16px; height:16px; vertical-align:middle;"></i> Location</p>
+                            <p style="font-size: 1.2rem; font-weight: 700; color: var(--text-main);">${event.location}</p>
+                        </div>
+
+                        ${isClosed ? '' : `
+                            <div class="detail-box" style="background: var(--primary-light); color: var(--primary-hover); border:1px solid var(--primary); text-align: center;">
+                                <h3 style="margin-bottom:0.5rem; font-size:1.2rem;">Reserved your spot?</h3>
+                                ${deadline ? `<p id="countdown-timer" style="font-size: 0.95rem; margin-bottom: 1.5rem; font-weight: 600;"></p>` : '<p style="font-size: 0.95rem; margin-bottom: 1.5rem;">Registrations close: Until event starts</p>'}
+                                <a href="login.html" id="reg-btn" class="btn" style="display: block; width:100%;">Student Login to Register</a>
+                            </div>
+                        `}
+
+                        <div class="detail-box">
+                            <h2 class="detail-title" style="font-size: 1.1rem;">Helpline & Support</h2>
+                            <p style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.5rem; font-weight:600;"><i data-feather="phone" style="width:16px; height:16px; vertical-align:middle; color:var(--primary);"></i> ${event.helpline || 'Check with Club House'}</p>
+                            <p style="font-size: 0.9rem; color: var(--text-muted);">For any queries regarding participation, contact the event coordinators.</p>
+                        </div>
+
+                         <div class="detail-box">
+                            <h2 class="detail-title" style="font-size: 1.1rem;">Event Coordinators</h2>
+                            ${allStaff.length > 0 ? allStaff.map(c => {
+                                let cPhoto = c.photo_url;
+                                if (cPhoto && cPhoto.startsWith('/')) {
+                                    cPhoto = API_BASE_URL + cPhoto;
+                                } else if (!cPhoto || cPhoto === 'null') {
+                                    cPhoto = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.name) + '&background=random';
+                                }
+                                return `
+                                    <div class="coordinator-card">
+                                        <img src="${cPhoto}" class="coordinator-img">
+                                        <div>
+                                            <p style="font-weight: 700; font-size: 0.95rem; color:var(--text-main);">${c.name}</p>
+                                            <p style="font-size: 0.75rem; font-weight:600; color: var(--primary); text-transform:uppercase;">${c.role_type}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') : '<p style="font-size: 0.9rem; color: var(--text-muted);">No staff members listed.</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            feather.replace();
+
+            // Registration check & button logic
+            const regBtn = document.getElementById('reg-btn');
+            if(regBtn && localStorage.getItem('token')) {
+                regBtn.textContent = 'Register Now';
+                regBtn.href = 'student_dashboard.html';
+                
+                try {
+                    const resTokens = await fetch(`${API_BASE_URL}/student/my-registrations`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    if(resTokens.ok) {
+                        const regs = await resTokens.json();
+                        const isReg = regs.some(r => r.event_id == event.id);
+                        if(isReg) {
+                            regBtn.textContent = 'Already Registered';
+                            regBtn.style.pointerEvents = 'none';
+                            regBtn.style.opacity = '0.5';
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // Countdown logic
+            if (!isClosed && deadline) {
+                const timerEl = document.getElementById('countdown-timer');
+                if (timerEl) {
+                    const updateCountdown = () => {
+                        const t = deadline.getTime() - new Date().getTime();
+                        if (t < 0) {
+                            timerEl.innerHTML = "Registration Closed";
+                            if(regBtn) regBtn.style.display = 'none';
+                            return;
+                        }
+                        const days = Math.floor(t / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((t % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((t % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((t % (1000 * 60)) / 1000);
+                        timerEl.innerHTML = `Closing in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                    };
+                    updateCountdown();
+                    setInterval(updateCountdown, 1000);
+                }
+            }
+
+            // Slideshow logic
+            if (event.photos && event.photos.length > 0) {
+                let currentSlide = 0;
+                const slides = document.querySelectorAll('.gallery-slide');
+                
+                window.changeSlide = (step) => {
+                    slides[currentSlide].style.opacity = 0;
+                    currentSlide = (currentSlide + step + slides.length) % slides.length;
+                    slides[currentSlide].style.opacity = 1;
+                };
+
+                setInterval(() => {
+                    window.changeSlide(1);
+                }, 3500);
+            }
+        }
+
+        fetchEventDetails();
+    </script>
+</body>
+</html>

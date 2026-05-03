@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leader Hub - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-layout { display: flex; gap: 2rem; margin-top: 2rem; }
+        .sidebar { position: static; height: auto; width: 250px; background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s ease; overflow: hidden; white-space: nowrap; }
+        .sidebar.collapsed { width: 0; padding: 0; border: none; opacity: 0; margin-left: -2rem; }
+        .sidebar-item { padding: 0.75rem 1rem; color: var(--text-muted); cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem; transition: all 0.2s; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.05); }
+        .sidebar-item.active { background: var(--primary); color: #fff; }
+        .main-panel { margin-left: 0; flex: 1; background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s ease; min-width: 0; }
+        .panel-section { display: none; }
+        .panel-section.active { display: block; animation: fadeIn 0.3s; }
+    </style>
+</head>
+<body>
+    <header style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="logo">ClubHub <span style="font-size: 0.8rem; color: var(--accent); margin-left:1rem;">LEADER HUB</span></div>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 500;">Home</a>
+            <button onclick="logout()" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">Logout</button>
+        </div>
+    </header>
+
+    <main style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <button onclick="toggleSidebar()" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">☰</button>
+            <h1 id="welcome-text" style="margin: 0;">Loading Hub...</h1>
+        </div>
+        
+        <div class="dashboard-layout">
+            <div class="sidebar collapsed">
+                <div class="sidebar-item active" onclick="switchPanel('panel-club')">Edit Club Profile</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-event')">Create New Event</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-manage-events')">Manage Events</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-announce')">Announcements</div>
+                <div class="sidebar-item" onclick="switchPanel('panel-coords')">Manage Coordinators</div>
+            </div>
+
+            <div class="main-panel">
+                <!-- Club Profile -->
+                <div id="panel-club" class="panel-section active">
+                    <h3>Edit Club Profile</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Update your club's public information.</p>
+                    <form id="form-club">
+                        <label>Club Name</label>
+                        <input type="text" id="c-name" class="form-control">
+                        <label>Description</label>
+                        <textarea id="c-desc" rows="4"></textarea>
+                        
+                        <label>Contact Email (Public)</label>
+                        <input type="email" id="c-email" class="form-control" placeholder="e.g. contact@club.com">
+                        <label>Instagram Link</label>
+                        <input type="url" id="c-insta" class="form-control" placeholder="e.g. https://instagram.com/yourclub">
+
+                        <label>Update Logo</label>
+                        <input type="file" id="c-logo" class="form-control" accept="image/*">
+                        <button type="submit" class="btn">Save Changes</button>
+                    </form>
+                </div>
+
+                <!-- Create Event -->
+                <div id="panel-event" class="panel-section">
+                    <h3>Publish New Event</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Announce a new event to the entire college.</p>
+                    <form id="form-event">
+                        <label>Event Title</label>
+                        <input type="text" id="e-title" class="form-control" required>
+                        <label>Description</label>
+                        <textarea id="e-desc" rows="3" required></textarea>
+                        <label>Date & Time</label>
+                        <input type="datetime-local" id="e-date" class="form-control" required>
+                        <label>Location</label>
+                        <input type="text" id="e-loc" class="form-control" required>
+                        <label>Event Poster</label>
+                        <input type="file" id="e-image" class="form-control" accept="image/*">
+                        <label>Special Instructions</label>
+                        <textarea id="e-instructions" rows="2" placeholder="Rules, what to bring, etc."></textarea>
+                        <label>Helpline Number</label>
+                        <input type="text" id="e-helpline" class="form-control" placeholder="Contact number">
+                        <label>Registration Deadline</label>
+                        <input type="datetime-local" id="e-deadline" class="form-control">
+                        <button type="submit" class="btn">Publish Event</button>
+                    </form>
+                </div>
+
+                <!-- Manage Events -->
+                <div id="panel-manage-events" class="panel-section">
+                    <h3>Manage Events</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Edit or delete your existing events.</p>
+                    <div id="events-list-container">
+                        <p>Loading events...</p>
+                    </div>
+
+                    <!-- Edit Event Modal/Form (Hidden by default) -->
+                    <div id="edit-event-container" style="display: none; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; margin-top: 2rem; border: 1px solid var(--primary);">
+                        <h4 style="margin-bottom: 1rem; color: var(--accent);">Edit Event</h4>
+                        <form id="form-edit-event">
+                            <input type="hidden" id="edit-e-id">
+                            <label>Event Title</label>
+                            <input type="text" id="edit-e-title" class="form-control">
+                            <label>Description</label>
+                            <textarea id="edit-e-desc" rows="3"></textarea>
+                            <label>Date & Time</label>
+                            <input type="datetime-local" id="edit-e-date" class="form-control">
+                            <label>Location</label>
+                            <input type="text" id="edit-e-loc" class="form-control">
+                            <label>Update Event Poster</label>
+                            <input type="file" id="edit-e-image" class="form-control" accept="image/*">
+                            <label>Special Instructions</label>
+                            <textarea id="edit-e-instructions" rows="2"></textarea>
+                            <label>Helpline Number</label>
+                            <input type="text" id="edit-e-helpline" class="form-control">
+                            <label>Registration Deadline</label>
+                            <input type="datetime-local" id="edit-e-deadline" class="form-control">
+                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
+                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('edit-event-container').style.display='none'">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Manage Registrations Modal -->
+                    <div id="manage-regs-container" style="display: none; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; margin-top: 2rem; border: 1px solid #8b5cf6;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="margin: 0; color: #8b5cf6;">Manage Registrations & Volunteers</h4>
+                            <button onclick="document.getElementById('manage-regs-container').style.display='none'" class="btn btn-outline" style="padding:0.2rem 0.5rem; font-size: 0.8rem;">Close</button>
+                        </div>
+                        <div id="regs-list-content">Loading...</div>
+                    </div>
+
+                    <!-- Upload Photos Modal -->
+                    <div id="upload-photos-container" style="display: none; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; margin-top: 2rem; border: 1px solid #10b981;">
+                        <h4 style="margin-bottom: 1rem; color: #10b981;">Upload Event Photos (Gallery)</h4>
+                        <form id="form-upload-photos">
+                            <input type="hidden" id="upload-e-id">
+                            <label>Select Multiple Photos</label>
+                            <input type="file" id="upload-e-files" class="form-control" accept="image/*" multiple required>
+                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                <button type="submit" class="btn" style="flex: 1; background: #10b981; border-color: #10b981;">Upload All</button>
+                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('upload-photos-container').style.display='none'">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Announcements -->
+                <div id="panel-announce" class="panel-section">
+                    <h3>Make an Announcement</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Broadcast an announcement to your club page.</p>
+                    <form id="form-announce">
+                        <label>Announcement Title</label>
+                        <input type="text" id="a-title" class="form-control" required>
+                        <label>Content</label>
+                        <textarea id="a-content" rows="4" required></textarea>
+                        <label>Related Poster / Image</label>
+                        <input type="file" id="a-image" class="form-control" accept="image/*">
+                        <label>Registration Link (Optional)</label>
+                        <input type="url" id="a-link" class="form-control" placeholder="https://...">
+                        <label>Deadline (Optional)</label>
+                        <input type="datetime-local" id="a-deadline" class="form-control">
+                        <button type="submit" class="btn">Publish Announcement</button>
+                    </form>
+                </div>
+
+                <!-- Coordinators -->
+                <div id="panel-coords" class="panel-section">
+                    <h3>Manage Coordinators</h3>
+                    <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Assign and manage faculty or student coordinators for your club.</p>
+                    
+                    <div style="margin-bottom: 2rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 1rem; color: var(--accent);">Add New Coordinator</h4>
+                        <form id="form-coords">
+                            <label>Role Type</label>
+                            <select id="co-role" class="form-control" required>
+                                <option value="student">Student</option>
+                                <option value="faculty">Faculty</option>
+                            </select>
+                            <label>Faculty Name (if applicable)</label>
+                            <input type="text" id="co-fname" class="form-control">
+                            <label>Faculty Email (if applicable)</label>
+                            <input type="email" id="co-email" class="form-control">
+                            <label>Student User ID (if student)</label>
+                            <input type="number" id="co-uid" class="form-control" placeholder="Optional User Registration ID">
+                            <label>Coordinator Photo</label>
+                            <input type="file" id="co-photo" class="form-control" accept="image/*">
+                            <button type="submit" class="btn">Add Coordinator</button>
+                        </form>
+                    </div>
+
+                    <div id="coords-list-container">
+                        <p>Loading coordinators...</p>
+                    </div>
+
+                    <!-- Edit Coordinator Modal/Form (Hidden by default) -->
+                    <div id="edit-coord-container" style="display: none; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; margin-top: 2rem; border: 1px solid var(--primary);">
+                        <h4 style="margin-bottom: 1rem; color: var(--accent);">Edit Coordinator</h4>
+                        <form id="form-edit-coord">
+                            <input type="hidden" id="edit-co-id">
+                            <label>Role Type</label>
+                            <select id="edit-co-role" class="form-control" required>
+                                <option value="student">Student</option>
+                                <option value="faculty">Faculty</option>
+                            </select>
+                            <label>Faculty Name</label>
+                            <input type="text" id="edit-co-fname" class="form-control">
+                            <label>Faculty Email</label>
+                            <input type="email" id="edit-co-email" class="form-control">
+                            <label>Student User ID</label>
+                            <input type="number" id="edit-co-uid" class="form-control">
+                            <label>Update Photo</label>
+                            <input type="file" id="edit-co-photo" class="form-control" accept="image/*">
+                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
+                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('edit-coord-container').style.display='none'">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        function switchPanel(panelId) {
+            document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize Data
+        async function fetchMyClub() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/leader/my-club', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const club = await res.json();
+                    document.getElementById('welcome-text').innerText = `Managing: ${club.name}`;
+                    document.getElementById('c-name').value = club.name;
+                    document.getElementById('c-desc').value = club.description;
+                    document.getElementById('c-email').value = club.contact_email || '';
+                    document.getElementById('c-insta').value = club.instagram_link || '';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        fetchMyClub();
+
+        // Fetch and Render Events
+        let currentEvents = [];
+
+        async function fetchMyEvents() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/leader/events', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    currentEvents = await res.json();
+                    const container = document.getElementById('events-list-container');
+                    if (currentEvents.length === 0) {
+                        container.innerHTML = '<p style="color: var(--text-muted);">You have not created any events yet.</p>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    currentEvents.forEach(e => {
+                        html += `
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem;">${e.title}</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">📅 ${new Date(e.date).toLocaleString()} | 📍 ${e.location}</p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button onclick="openEditEventById(${e.id})" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Edit</button>
+                                <button onclick="openManageRegistrations(${e.id})" class="btn" style="background:#8b5cf6; border-color:#8b5cf6; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Registrations</button>
+                                ${new Date(e.date) < new Date() ? `<button onclick="openUploadPhotos(${e.id})" class="btn" style="background:#10b981; border-color:#10b981; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Upload Photos</button>` : ''}
+                                <button onclick="deleteEvent(${e.id})" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Delete</button>
+                            </div>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                console.error("Failed to load events", e);
+            }
+        }
+        fetchMyEvents();
+
+        // Open Edit Modal
+        function openEditEventById(id) {
+            const e = currentEvents.find(ev => ev.id === id);
+            if (!e) return;
+            document.getElementById('edit-event-container').style.display = 'block';
+            document.getElementById('edit-e-id').value = e.id;
+            document.getElementById('edit-e-title').value = e.title;
+            document.getElementById('edit-e-desc').value = e.description;
+            
+            if (e.date) {
+                const d = new Date(e.date);
+                const tzOffset = d.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+                document.getElementById('edit-e-date').value = localISOTime;
+            }
+            
+            document.getElementById('edit-e-loc').value = e.location;
+            document.getElementById('edit-e-instructions').value = e.instructions || '';
+            document.getElementById('edit-e-helpline').value = e.helpline || '';
+            
+            if (e.registration_deadline) {
+                const d = new Date(e.registration_deadline);
+                const tzOffset = d.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+                document.getElementById('edit-e-deadline').value = localISOTime;
+            } else {
+                document.getElementById('edit-e-deadline').value = '';
+            }
+            
+            document.getElementById('edit-e-image').value = ''; 
+            document.getElementById('manage-regs-container').style.display = 'none';
+            document.getElementById('upload-photos-container').style.display = 'none';
+        }
+
+        async function openManageRegistrations(id) {
+            document.getElementById('manage-regs-container').style.display = 'block';
+            document.getElementById('edit-event-container').style.display = 'none';
+            document.getElementById('upload-photos-container').style.display = 'none';
+            document.getElementById('regs-list-content').innerHTML = "Loading...";
+            
+            const res = await fetch(`http://127.0.0.1:8000/leader/events/${id}/registrations`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if(res.ok) {
+                const regs = await res.json();
+                if(regs.length === 0) {
+                    document.getElementById('regs-list-content').innerHTML = "<p style='color:var(--text-muted)'>No registrations yet.</p>";
+                    return;
+                }
+                let html = "";
+                regs.forEach(r => {
+                    html += `
+                    <div style="border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.1);">
+                        <div>
+                            <strong>${r.user_name}</strong> <span style="font-size:0.8rem; color:var(--text-muted)">(${r.user_email})</span><br>
+                            <span style="font-size:0.8rem;">Type: <span style="text-transform:uppercase; color:var(--accent)">${r.type}</span> | Status: <span style="text-transform:uppercase; color:${r.status === 'approved' ? '#10b981' : (r.status === 'pending' ? '#eab308' : '#ef4444')}">${r.status}</span></span>
+                        </div>
+                        ${r.status === 'pending' ? `
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="updateRegStatus(${r.registration_id}, ${id}, 'approved')" class="btn" style="background:#10b981; border-color:#10b981; padding:0.3rem 0.6rem; font-size:0.8rem">Approve</button>
+                            <button onclick="updateRegStatus(${r.registration_id}, ${id}, 'rejected')" class="btn btn-outline" style="border-color:#ef4444; color:#ef4444; padding:0.3rem 0.6rem; font-size:0.8rem">Reject</button>
+                        </div>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                document.getElementById('regs-list-content').innerHTML = html;
+            }
+        }
+
+        async function updateRegStatus(regId, eventId, status) {
+            const formData = new FormData();
+            formData.append('status_update', status);
+            const res = await fetch(`http://127.0.0.1:8000/leader/registrations/${regId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if(res.ok) {
+                openManageRegistrations(eventId);
+            }
+        }
+
+        function openUploadPhotos(id) {
+            document.getElementById('upload-photos-container').style.display = 'block';
+            document.getElementById('edit-event-container').style.display = 'none';
+            document.getElementById('manage-regs-container').style.display = 'none';
+            document.getElementById('upload-e-id').value = id;
+            document.getElementById('upload-e-files').value = '';
+        }
+
+        document.getElementById('form-upload-photos').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('upload-e-id').value;
+            const files = document.getElementById('upload-e-files').files;
+            
+            if(files.length === 0) return;
+            const formData = new FormData();
+            for(let i=0; i<files.length; i++) {
+                formData.append('photos', files[i]);
+            }
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.textContent = "Uploading...";
+            btn.disabled = true;
+
+            const res = await fetch(`http://127.0.0.1:8000/leader/events/${id}/photos`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            
+            if(res.ok) {
+                alert("Photos uploaded successfully!");
+                document.getElementById('upload-photos-container').style.display = 'none';
+            } else {
+                alert("Upload failed.");
+            }
+            btn.textContent = "Upload All";
+            btn.disabled = false;
+        });
+
+        // Handle Edit Event Submit
+        document.getElementById('form-edit-event').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-e-id').value;
+            const formData = new FormData();
+            if(document.getElementById('edit-e-title').value) formData.append('title', document.getElementById('edit-e-title').value);
+            if(document.getElementById('edit-e-desc').value) formData.append('description', document.getElementById('edit-e-desc').value);
+            if(document.getElementById('edit-e-date').value) formData.append('date', document.getElementById('edit-e-date').value);
+            if(document.getElementById('edit-e-loc').value) formData.append('location', document.getElementById('edit-e-loc').value);
+            formData.append('instructions', document.getElementById('edit-e-instructions').value);
+            formData.append('helpline', document.getElementById('edit-e-helpline').value);
+            const deadline = document.getElementById('edit-e-deadline').value;
+            if(deadline) formData.append('registration_deadline', deadline);
+            
+            const img = document.getElementById('edit-e-image').files[0];
+            if(img) formData.append('image', img);
+
+            const res = await fetch(`http://127.0.0.1:8000/leader/events/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Event updated successfully!");
+                document.getElementById('edit-event-container').style.display = 'none';
+                fetchMyEvents(); 
+            } else {
+                alert("Update failed.");
+            }
+        });
+
+        // Handle Delete Event
+        async function deleteEvent(id) {
+            if(!confirm("Are you sure you want to permanently delete this event?")) return;
+            const res = await fetch(`http://127.0.0.1:8000/leader/events/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchMyEvents();
+            } else {
+                alert("Delete failed.");
+            }
+        }
+
+        // Handle Club Update
+        document.getElementById('form-club').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            if(document.getElementById('c-name').value) formData.append('name', document.getElementById('c-name').value);
+            if(document.getElementById('c-desc').value) formData.append('description', document.getElementById('c-desc').value);
+            formData.append('contact_email', document.getElementById('c-email').value);
+            formData.append('instagram_link', document.getElementById('c-insta').value);
+            const logo = document.getElementById('c-logo').files[0];
+            if(logo) formData.append('logo', logo);
+
+            const res = await fetch('http://127.0.0.1:8000/leader/club', {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Club profile updated!");
+                window.location.reload();
+            } else {
+                alert("Update failed.");
+            }
+        });
+
+        // Handle Event Creation
+        document.getElementById('form-event').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('title', document.getElementById('e-title').value);
+            formData.append('description', document.getElementById('e-desc').value);
+            // Format datetime roughly for DB
+            formData.append('date', document.getElementById('e-date').value);
+            formData.append('location', document.getElementById('e-loc').value);
+            formData.append('instructions', document.getElementById('e-instructions').value);
+            formData.append('helpline', document.getElementById('e-helpline').value);
+            const deadline = document.getElementById('e-deadline').value;
+            if(deadline) formData.append('registration_deadline', deadline);
+            const img = document.getElementById('e-image').files[0];
+            if(img) formData.append('image', img);
+
+            const res = await fetch('http://127.0.0.1:8000/leader/events', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Event published successfully!");
+                e.target.reset();
+            } else alert("Failed to publish event.");
+        });
+
+        // Handle Coordinator List
+        let currentCoords = [];
+
+        async function fetchMyCoordinators() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/leader/coordinators', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    currentCoords = await res.json();
+                    const container = document.getElementById('coords-list-container');
+                    if (currentCoords.length === 0) {
+                        container.innerHTML = '<p style="color: var(--text-muted);">You have no assigned coordinators.</p>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    currentCoords.forEach(c => {
+                        let displayName = c.faculty_name || "Assigned Student (System ID: " + c.user_id + ")";
+                        let actionsHtml = '';
+                        if (c.status === 'pending') {
+                            actionsHtml = `
+                                <button onclick="updateCoordStatus(${c.id}, 'approved')" class="btn" style="background: #22c55e; border-color: #22c55e; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Approve</button>
+                                <button onclick="updateCoordStatus(${c.id}, 'rejected')" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Reject</button>
+                            `;
+                        } else {
+                            actionsHtml = `
+                                <button onclick="openEditCoordById(${c.id})" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Edit</button>
+                                <button onclick="deleteCoord(${c.id})" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.85rem;">Delete</button>
+                            `;
+                        }
+
+                        html += `
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    ${displayName}
+                                    <span style="font-size: 0.7rem; background: ${c.status === 'pending' ? '#eab308' : 'var(--primary)'}; padding: 0.2rem 0.5rem; border-radius: 4px; text-transform: uppercase;">${c.role_type} - ${c.status}</span>
+                                </h4>
+                                <p style="font-size: 0.85rem; margin: 0; color: var(--text-muted);">✉️ ${c.faculty_email || 'No email specified'}</p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                ${actionsHtml}
+                            </div>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                console.error("Failed to load coords", e);
+            }
+        }
+        fetchMyCoordinators();
+
+        // Handle Add Coordinator
+        document.getElementById('form-coords').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('role_type', document.getElementById('co-role').value);
+            formData.append('status', 'approved');
+            formData.append('faculty_name', document.getElementById('co-fname').value);
+            formData.append('faculty_email', document.getElementById('co-email').value);
+            formData.append('user_id', document.getElementById('co-uid').value);
+            
+            const photo = document.getElementById('co-photo').files[0];
+            if(photo) formData.append('photo', photo);
+
+            const res = await fetch('http://127.0.0.1:8000/leader/coordinators', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Coordinator added successfully!");
+                e.target.reset();
+                fetchMyCoordinators();
+            } else alert("Failed to add coordinator.");
+        });
+
+        async function updateCoordStatus(id, newStatus) {
+            const formData = new FormData();
+            formData.append('status', newStatus);
+            const res = await fetch(`http://127.0.0.1:8000/leader/coordinators/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                fetchMyCoordinators();
+            } else {
+                alert("Failed to update status.");
+            }
+        }
+
+        // Open Edit Modal for Coordinator
+        function openEditCoordById(id) {
+            const c = currentCoords.find(co => co.id === id);
+            if (!c) return;
+            document.getElementById('edit-coord-container').style.display = 'block';
+            document.getElementById('edit-co-id').value = c.id;
+            document.getElementById('edit-co-role').value = c.role_type;
+            document.getElementById('edit-co-fname').value = c.faculty_name || '';
+            document.getElementById('edit-co-email').value = c.faculty_email || '';
+            document.getElementById('edit-co-uid').value = c.user_id || '';
+            document.getElementById('edit-co-photo').value = ''; 
+        }
+
+        // Handle Edit Coordinator
+        document.getElementById('form-edit-coord').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-co-id').value;
+            const formData = new FormData();
+            formData.append('role_type', document.getElementById('edit-co-role').value);
+            formData.append('faculty_name', document.getElementById('edit-co-fname').value);
+            formData.append('faculty_email', document.getElementById('edit-co-email').value);
+            formData.append('user_id', document.getElementById('edit-co-uid').value);
+            
+            const photo = document.getElementById('edit-co-photo').files[0];
+            if(photo) formData.append('photo', photo);
+
+            const res = await fetch(`http://127.0.0.1:8000/leader/coordinators/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Coordinator updated!");
+                document.getElementById('edit-coord-container').style.display = 'none';
+                fetchMyCoordinators();
+            } else {
+                alert("Update failed.");
+            }
+        });
+
+        // Handle Delete Coordinator
+        async function deleteCoord(id) {
+            if(!confirm("Are you sure you want to permanently delete this coordinator?")) return;
+            const res = await fetch(`http://127.0.0.1:8000/leader/coordinators/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchMyCoordinators();
+            } else {
+                alert("Delete failed.");
+            }
+        }
+
+        // Handle Announcement Creation
+        document.getElementById('form-announce').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('title', document.getElementById('a-title').value);
+            formData.append('content', document.getElementById('a-content').value);
+            
+            const link = document.getElementById('a-link').value;
+            if(link) formData.append('registration_link', link);
+            
+            const deadline = document.getElementById('a-deadline').value;
+            if(deadline) formData.append('deadline', deadline);
+            
+            const img = document.getElementById('a-image').files[0];
+            if(img) formData.append('image', img);
+
+            const res = await fetch('http://127.0.0.1:8000/leader/announcements', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            if (res.ok) {
+                alert("Announcement published successfully!");
+                e.target.reset();
+            } else {
+                alert("Failed to publish announcement.");
+            }
+        });
+    </script>
+    <script src="shared.js"></script>
+</body>
+</html>

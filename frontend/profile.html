@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - ClubHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2.5rem;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .profile-pic-wrapper {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1.5rem auto;
+        }
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            background: #2a2a2a;
+        }
+        .pic-upload-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid var(--bg-card);
+            transition: transform 0.2s;
+        }
+        .pic-upload-btn:hover { transform: scale(1.1); }
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(124, 58, 237, 0.2);
+            color: var(--accent);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        .full-width { grid-column: span 2; }
+        .save-btn {
+            margin-top: 2rem;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header" style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem; background: var(--bg-card); border-bottom: 1px solid var(--border);">
+        <div class="logo" style="font-weight: 800; color: var(--primary); font-size: 1.5rem;">ClubHub</div>
+        <div class="auth-buttons"></div>
+    </header>
+
+    <main>
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-pic-wrapper">
+                    <img src="https://ui-avatars.com/api/?name=User&size=150" alt="Profile" class="profile-pic" id="display-pic">
+                    <label for="p-photo" class="pic-upload-btn">
+                        📷
+                        <input type="file" id="p-photo" accept="image/*" style="display:none">
+                    </label>
+                </div>
+                <h2 id="display-name">Loading...</h2>
+                <div class="role-badge" id="display-role">User</div>
+            </div>
+
+            <form id="profile-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="p-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="p-email" class="form-control" required>
+                    </div>
+                    <div class="form-group" id="roll-number-container">
+                        <label>Roll Number / ID</label>
+                        <input type="text" id="p-roll" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <!-- Spacer for grid if roll number is present -->
+                    </div>
+                    
+                    <h3 class="full-width" style="margin-top: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Security</h3>
+                    
+                    <div class="form-group">
+                        <label>New Password (Leave blank to keep current)</label>
+                        <input type="password" id="p-pass" class="form-control" placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="p-pass-confirm" class="form-control" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn save-btn">Save Profile Changes</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="shared.js"></script>
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        async function fetchProfile() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/user/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Could not load profile");
+                const user = await res.json();
+                
+                document.getElementById('display-name').textContent = user.name;
+                document.getElementById('display-role').textContent = user.role;
+                document.getElementById('p-name').value = user.name;
+                document.getElementById('p-email').value = user.email;
+                document.getElementById('p-roll').value = user.roll_number || '';
+                
+                if (user.profile_photo_url) {
+                    document.getElementById('display-pic').src = user.profile_photo_url.startsWith('/') 
+                        ? API_BASE_URL + user.profile_photo_url 
+                        : user.profile_photo_url;
+                } else {
+                    document.getElementById('display-pic').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=150&background=7c3aed&color=fff`;
+                }
+
+                if (user.role === 'admin') {
+                    document.getElementById('roll-number-container').style.display = 'none';
+                }
+            } catch (err) {
+                alert(err.message);
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Preview Photo
+        document.getElementById('p-photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('display-pic').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const pass = document.getElementById('p-pass').value;
+            const confirmPass = document.getElementById('p-pass-confirm').value;
+            
+            if (pass && pass !== confirmPass) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('p-name').value);
+            formData.append('email', document.getElementById('p-email').value);
+            if (pass) formData.append('password', pass);
+            formData.append('roll_number', document.getElementById('p-roll').value);
+            
+            const photo = document.getElementById('p-photo').files[0];
+            if (photo) formData.append('profile_photo', photo);
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/user/me`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                
+                if (res.ok) {
+                    alert("Profile updated successfully!");
+                    window.location.reload();
+                } else {
+                    const data = await res.json();
+                    alert(data.detail || "Update failed");
+                }
+            } catch (err) {
+                alert("An error occurred during update.");
+            }
+        });
+
+        fetchProfile();
+    </script>
+</body>
+</html>
